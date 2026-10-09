@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#4f46e5">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>CodeTrail</title>
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--tx:#1f2430;--mu:#6b7280;--pr:#4f46e5;--bd:#e3e6ee}
+@media(prefers-color-scheme:dark){:root{--bg:#12141b;--card:#1b1f2a;--tx:#e8eaf0;--mu:#9aa1b2;--bd:#2c3242}}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--tx)}
+header{background:var(--pr);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:20px}main{max-width:900px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+label{font-size:12px;color:var(--mu);display:block;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+button{background:var(--pr);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
+button.g{background:transparent;color:var(--pr);border:1px solid var(--pr)}button.s{padding:4px 8px;font-size:12px}
+.hd{background:transparent;color:#fff;border:1px solid #fff9}
+.stats{display:flex;gap:8px;flex-wrap:wrap}.stat{flex:1;min-width:90px;text-align:center}.stat b{font-size:22px;display:block}
+.item{border-top:1px solid var(--bd);padding:10px 0}.item a{color:var(--pr);font-weight:600;word-break:break-all}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bd);margin:3px 4px 0 0}
+.To{background:#fde68a;color:#78350f}.So{background:#bbf7d0;color:#14532d}.Re{background:#fecaca;color:#7f1d1d}
+#msg{font-size:12px;color:var(--mu);margin-top:6px}details summary{cursor:pointer;color:var(--pr)}
+</style></head><body>
+<header><h1 style="display:flex;align-items:center;gap:8px"><img src="icon-192.png" alt="" width="28" height="28" style="border-radius:6px">CodeTrail</h1><div><button class="hd s" id="inst" hidden>Install</button> <button class="hd s" id="exp">CSV</button></div></header>
+<main>
+<div class="card stats" id="stats"></div>
+
+<div class="card"><b>Add question</b>
+<label>Question link *</label><input id="link" type="url" placeholder="https://leetcode.com/problems/two-sum/">
+<label>Title (optional)</label><input id="title">
+<div class="row">
+<div><label>Status</label><select id="status"><option>To solve</option><option>Solved</option><option>Solve again</option></select></div>
+<div><label>Lecture</label><select id="lecture"><option>Not needed</option><option>Watch lecture</option><option>Watched</option></select></div>
+<div><label>Difficulty</label><select id="diff"><option>Easy</option><option selected>Medium</option><option>Hard</option></select></div>
+</div>
+<label>Tags (comma separated)</label><input id="tags" placeholder="dp, arrays">
+<label>Notes</label><textarea id="notes" rows="2"></textarea>
+<p><button id="add">Save</button> <span id="msg"></span></p></div>
+
+<div class="card"><div class="row">
+<input id="q" placeholder="Search…"><select id="f"><option value="">All status</option><option>To solve</option><option>Solved</option><option>Solve again</option></select></div>
+<div id="list"></div></div>
+
+<div class="card"><details><summary>⚙ Settings (Google Sheet sync)</summary>
+<label>Your name</label><input id="user">
+<label>Apps Script Web App URL</label><input id="url" placeholder="https://script.google.com/macros/s/.../exec">
+<label>Secret key (same as in Code.gs)</label><input id="key">
+<p><button id="save">Save settings</button> <button class="g" id="sync">Sync all to Sheet</button></p></details></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+let items=ld('sl_items',[]),cfg=ld('sl_cfg',{});
+const store=()=>localStorage.setItem('sl_items',JSON.stringify(items));
+const plat=u=>{try{const h=new URL(u).hostname.replace('www.','');
+ const m={'leetcode.com':'LeetCode','codeforces.com':'Codeforces','codechef.com':'CodeChef','atcoder.jp':'AtCoder','geeksforgeeks.org':'GeeksforGeeks','hackerrank.com':'HackerRank','cses.fi':'CSES','codingninjas.com':'Coding Ninjas','interviewbit.com':'InterviewBit'};
+ return m[h]||h}catch{return 'Other'}};
+const nrm=u=>{try{const x=new URL(u);const h=x.hostname.replace(/^www\./,'').toLowerCase();
+ const drop=/^(utm_.*|ref|source|list|envtype|envid|favoriteslug|plan|fbclid|gclid)$/i;
+ const q=[...x.searchParams].filter(([k])=>!drop.test(k)).sort().map(([k,v])=>k+'='+v).join('&');
+ let pth=x.pathname.replace(/\/+$/,'');
+ if(h=='leetcode.com'){const m=pth.match(/^\/problems\/[^/]+/);if(m)pth=m[0]}
+ return h+pth.toLowerCase()+(q?'?'+q:'')}catch{return u.trim().toLowerCase()}};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function push(it){
+ if(!cfg.url||!(cfg.user||'').trim())return false;
+ const body={key:cfg.key||'',id:it.id,date:it.date,user:cfg.user||'',platform:it.platform,link:it.link,title:it.title,status:it.status,lecture:it.lecture,difficulty:it.diff,tags:it.tags,notes:it.notes,updated:new Date().toISOString()};
+ try{await fetch(cfg.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});it.synced=true;return true}
+ catch{it.synced=false;return false}}
+function render(){
+ const q=$('q').value.toLowerCase(),f=$('f').value;
+ const c=s=>items.filter(i=>i.status==s).length;
+ $('stats').innerHTML=[['Total',items.length],['To solve',c('To solve')],['Solved',c('Solved')],['Solve again',c('Solve again')],['Lectures',items.filter(i=>i.lecture=='Watch lecture').length]].map(([a,b])=>`<div class="stat"><b>${b}</b><small>${a}</small></div>`).join('');
+ $('list').innerHTML=items.filter(i=>(!f||i.status==f)&&(!q||JSON.stringify(i).toLowerCase().includes(q))).map(i=>`
+ <div class="item"><a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title||i.link)}</a>
+ <div><span class="tag ${i.status.slice(0,2)}">${i.status}</span><span class="tag">${esc(i.platform)}</span><span class="tag">${i.diff}</span><span class="tag">🎥 ${i.lecture}</span>${i.tags.split(',').filter(x=>x.trim()).map(t=>`<span class="tag">#${esc(t.trim())}</span>`).join('')}${i.synced?'<span class="tag">☁ synced</span>':''}</div>
+ ${i.notes?`<small>${esc(i.notes)}</small><br>`:''}
+ <button class="s g" onclick="setS('${i.id}','Solved')">Solved</button> <button class="s g" onclick="setS('${i.id}','Solve again')">Solve again</button> <button class="s g" onclick="setL('${i.id}')">Lecture ✓</button> <button class="s g" onclick="del('${i.id}')">Delete</button></div>`).join('')||'<p style="color:var(--mu)">No questions yet.</p>';}
+async function upd(id,fn){const it=items.find(x=>x.id==id);fn(it);await push(it);store();render()}
+window.setS=(id,s)=>upd(id,i=>i.status=s);
+window.setL=id=>upd(id,i=>i.lecture='Watched');
+window.del=id=>{if(confirm('Delete? (Sheet row stays)')){items=items.filter(x=>x.id!=id);store();render()}};
+$('add').onclick=async()=>{
+ const link=$('link').value.trim();if(!/^https?:\/\//.test(link)){$('msg').textContent='Enter a valid link';return}
+ const dup=items.find(x=>nrm(x.link)==nrm(link));
+ if(dup){
+  if(!confirm('Already in your list ('+dup.status+', added '+dup.date+').\n\nOK = update that entry with the details below\nCancel = don\'t add')){$('msg').textContent='Duplicate not added';return}
+  dup.status=$('status').value;dup.lecture=$('lecture').value;dup.diff=$('diff').value;
+  const nt=$('tags').value.split(',').map(t=>t.trim()).filter(Boolean),ot=dup.tags.split(',').map(t=>t.trim()).filter(Boolean);
+  dup.tags=[...new Set([...ot,...nt])].join(', ');
+  if($('notes').value.trim())dup.notes=(dup.notes?dup.notes+'\n':'')+$('notes').value.trim();
+  if(!dup.title&&$('title').value.trim())dup.title=$('title').value.trim();
+  const ok=await push(dup);store();render();['link','title','tags','notes'].forEach(x=>$(x).value='');
+  $('msg').textContent='Duplicate found: existing entry updated'+(cfg.url&&(cfg.user||'').trim()?(ok?' & synced ✓':' (sync failed)'):'');return}
+ const it={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),date:new Date().toISOString().slice(0,10),link,platform:plat(link),title:$('title').value.trim(),status:$('status').value,lecture:$('lecture').value,diff:$('diff').value,tags:$('tags').value,notes:$('notes').value};
+ items.unshift(it);const ok=await push(it);store();render();
+ ['link','title','tags','notes'].forEach(x=>$(x).value='');
+ $('msg').textContent=!cfg.url?'Saved locally (add Sheet URL in Settings)':!(cfg.user||'').trim()?'Saved locally. Enter your name in Settings to sync':ok?'Saved & sent to Sheet ✓':'Saved locally (sync failed)';};
+$('save').onclick=()=>{cfg={user:$('user').value,url:$('url').value.trim(),key:$('key').value};localStorage.setItem('sl_cfg',JSON.stringify(cfg));alert('Saved')};
+$('sync').onclick=async()=>{for(const it of items)await push(it);store();render();alert(!cfg.url?'Add the Web App URL in Settings first':!(cfg.user||'').trim()?'Enter your name in Settings first':'Sent '+items.length+' rows. Check your Sheet.')};
+$('exp').onclick=()=>{const h=['id','date','platform','link','title','status','lecture','diff','tags','notes'];
+ const csv=[h.join(',')].concat(items.map(i=>h.map(k=>'"'+String(i[k]??'').replace(/"/g,'""')+'"').join(','))).join('\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='codetrail.csv';a.click()};
+['q','f'].forEach(x=>$(x).oninput=render);
+$('user').value=cfg.user||'';$('url').value=cfg.url||'';$('key').value=cfg.key||'';render();
+let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('inst').hidden=false});
+$('inst').onclick=()=>dp&&dp.prompt();
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
