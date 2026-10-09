@@ -8,7 +8,7 @@
 
 <br>
 
-### 🌐 **Open CodeTrail Live → https://aswqxf12.github.io/crispy-invention**
+### 🌐 **Open CodeTrail Live → https://itsabhinav0x.github.io/CodeTrail**
 
 <img src="https://img.shields.io/badge/Live-GitHub%20Pages-2ea44f?style=for-the-badge&logo=github" />
 <img src="https://img.shields.io/badge/PWA-Installable-5A0FC8?style=for-the-badge&logo=pwa" />
@@ -62,7 +62,7 @@ Paste a question link, then mark what to do next: **solve**, **solve again** or 
 
 Just open the link in any modern browser (Chrome, Edge, Safari, Firefox):
 
-**https://aswqxf12.github.io/cuddly-computing-machine/**
+**https://itsabhinav0x.github.io/CodeTrail**
 
 Bookmark it and start adding questions. Your data stays in that browser on that device.
 
