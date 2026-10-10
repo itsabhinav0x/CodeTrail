@@ -19,7 +19,7 @@
 
 ---
 
-## 📘 About
+## About
 
 **CodeTrail** is a free problem tracker for students who solve lots of programming questions but have no way to track them.
 
