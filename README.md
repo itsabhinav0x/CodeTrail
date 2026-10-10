@@ -1,5 +1,5 @@
 <div align="center">
-
+  
 <img src="icon-512.png" alt="CodeTrail logo" width="130" />
 
 <img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=800&size=45&duration=2500&pause=1000&color=2DD4BF&center=true&vCenter=true&width=700&height=80&lines=CODETRAIL;TRACK+EVERY+PROBLEM;SOLVE.+REVISIT.+REPEAT." alt="CodeTrail" />
