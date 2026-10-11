@@ -68,7 +68,7 @@ Bookmark it and start adding questions. Your data stays in that browser on that 
 
 ---
 
-## 2. 📱 Install on Android
+## 2.  Install on Android
 
 1. Open the live link in **Google Chrome**.
 2. Tap the **⋮** menu (top right).
@@ -79,7 +79,7 @@ You can also tap the **Install** button inside the app if it shows up in the hea
 
 ---
 
-## 3. 💻 Install on Windows
+## 3.  Install on Windows
 
 **With Microsoft Edge or Google Chrome**
 1. Open the live link.
@@ -91,7 +91,7 @@ Prefer not to install? Use it online (section 1).
 
 ---
 
-## 4. 🍎 Install on iPhone / iPad / Mac
+## 4.  Install on iPhone / iPad / Mac
 
 - **iPhone / iPad:** open the link in **Safari** → tap **Share** → **Add to Home Screen**.
 - **Mac (Safari):** **File → Add to Dock**.
